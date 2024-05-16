@@ -1,7 +1,30 @@
 import 'dart:convert';
-
+import 'model_four.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+
+class Post {
+  final int userId;
+  final int id;
+  final String title;
+  final String body;
+
+  Post({
+    required this.userId,
+    required this.id,
+    required this.title,
+    required this.body,
+  });
+
+  factory Post.fromJson(Map<String, dynamic> json) {
+    return Post(
+      userId: json['userId'],
+      id: json['id'],
+      title: json['title'],
+      body: json['body'],
+    );
+  }
+}
 
 class Task4 extends StatefulWidget {
   const Task4({Key? key});
@@ -11,7 +34,7 @@ class Task4 extends StatefulWidget {
 }
 
 class _Task4State extends State<Task4> {
-  List<dynamic> users = [];
+  List<Post> posts = [];
   bool isLoading = false; // Add a boolean to track loading state
 
   @override
@@ -24,18 +47,19 @@ class _Task4State extends State<Task4> {
         // Use Stack to overlay the loader on top of the list
         children: [
           ListView.builder(
-            itemCount: users.length,
+            itemCount: posts.length,
             itemBuilder: (context, index) {
-              final user = users[index];
-              final title = user['title'];
-              final text = user['body']; // Define text variable here
+              final post = posts[index];
+              final title = post.title;
+              final text = post.body; // Define text variable here
               return GestureDetector(
                 onTap: () {
-                  _showAlertDialog(title, text); // Pass text to _showAlertDialog
+                  _showAlertDialog(
+                      title, text); // Pass text to _showAlertDialog
                 },
                 child: Card(
                   child: ListTile(
-                    leading: Text("${index + 1}"),
+                    leading: Text("${post.id}"),
                     title: Text(title),
                   ),
                 ),
@@ -65,10 +89,9 @@ class _Task4State extends State<Task4> {
     final response = await http.get(uri);
 
     if (response.statusCode == 200) {
-      final body = response.body;
-      final List<dynamic> json = jsonDecode(body);
+      final List<dynamic> json = jsonDecode(response.body);
       setState(() {
-        users = json;
+        posts = json.map((e) => Post.fromJson(e)).toList();
         isLoading = false; // Set isLoading to false after data is loaded
       });
     } else {
@@ -80,7 +103,7 @@ class _Task4State extends State<Task4> {
     }
   }
 
-  void _showAlertDialog(String title, String text) { // Add text parameter here
+  void _showAlertDialog(String title, String text) {
     showDialog(
       context: context,
       builder: (BuildContext context) {

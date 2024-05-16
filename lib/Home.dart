@@ -2,10 +2,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:connectivity/connectivity.dart';
-import 'package:internship1task/Loginpage.dart';
-import 'package:internship1task/TaskFive.dart';
-import 'package:internship1task/TaskFour.dart';
-import 'package:internship1task/TaskSix.dart';
+import 'package:internship1task/login_page.dart';
+import 'package:internship1task/task_five.dart';
+import 'package:internship1task/task_four.dart';
+import 'package:internship1task/task_six.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key});

@@ -1,7 +1,30 @@
 import 'dart:convert';
-
+import 'model_five.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+
+class Photo {
+  final int id;
+  final String title;
+  final String url;
+  final String thumbnailUrl;
+
+  Photo({
+    required this.id,
+    required this.title,
+    required this.url,
+    required this.thumbnailUrl,
+  });
+
+  factory Photo.fromJson(Map<String, dynamic> json) {
+    return Photo(
+      id: json['id'] ?? 0,
+      title: json['title'] ?? '',
+      url: json['url'] ?? '',
+      thumbnailUrl: json['thumbnailUrl'] ?? '',
+    );
+  }
+}
 
 class Task5 extends StatefulWidget {
   const Task5({Key? key});
@@ -11,8 +34,8 @@ class Task5 extends StatefulWidget {
 }
 
 class _Task5State extends State<Task5> {
-  List<dynamic> users = [];
-  bool isLoading = false; // Add a boolean to track loading state
+  List<Photo> photos = [];
+  bool isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -21,67 +44,60 @@ class _Task5State extends State<Task5> {
         title: Text("Task5"),
       ),
       body: Stack(
-        // Use Stack to overlay the loader on top of the list
         children: [
           ListView.builder(
-            itemCount: users.length,
+            itemCount: photos.length,
             itemBuilder: (context, index) {
-              final user = users[index];
-              final title = user['title'];
-              final thumbnail = user['thumbnailUrl'];
-              final imageUrl = user['url'];
+              final photo = photos[index];
               return GestureDetector(
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => ImagePage(imageUrl: imageUrl),
+                      builder: (context) => ImagePage(imageUrl: photo.url),
                     ),
                   );
                 },
                 child: Card(
                   child: ListTile(
-                    leading: Image.network(thumbnail),
-                    title: Text(title),
+                    leading: Image.network(photo.thumbnailUrl),
+                    title: Text(photo.title),
                   ),
                 ),
               );
             },
           ),
-          if (isLoading) // Show loader if isLoading is true
+          if (isLoading)
             Center(
               child: CircularProgressIndicator(),
             ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: fetchdata,
+        onPressed: fetchPhotos,
         child: Icon(Icons.refresh),
       ),
     );
   }
 
-  void fetchdata() async {
+  Future<void> fetchPhotos() async {
     setState(() {
-      isLoading = true; // Set isLoading to true before fetching data
+      isLoading = true;
     });
 
     final url = 'https://jsonplaceholder.typicode.com/photos';
-    final uri = Uri.parse(url);
-    final response = await http.get(uri);
+    final response = await http.get(Uri.parse(url));
 
     if (response.statusCode == 200) {
-      final body = response.body;
-      final List<dynamic> json = jsonDecode(body);
+      final List<dynamic> json = jsonDecode(response.body);
       setState(() {
-        users = json;
-        isLoading = false; // Set isLoading to false after data is loaded
+        photos = json.map((photoJson) => Photo.fromJson(photoJson)).toList();
+        isLoading = false;
       });
     } else {
-      // Handle error if the request fails
       print('Failed to load data: ${response.statusCode}');
       setState(() {
-        isLoading = false; // Set isLoading to false in case of error
+        isLoading = false;
       });
     }
   }

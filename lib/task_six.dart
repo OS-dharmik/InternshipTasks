@@ -1,7 +1,35 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+
+void main() {
+  runApp(MaterialApp(
+    home: Task6(),
+  ));
+}
+
+class Todo {
+  final int userId;
+  final int id;
+  final String title;
+  final bool completed;
+
+  Todo({
+    required this.userId,
+    required this.id,
+    required this.title,
+    required this.completed,
+  });
+
+  factory Todo.fromJson(Map<String, dynamic> json) {
+    return Todo(
+      userId: json['userId'],
+      id: json['id'],
+      title: json['title'],
+      completed: json['completed'],
+    );
+  }
+}
 
 class Task6 extends StatefulWidget {
   const Task6({Key? key});
@@ -11,10 +39,11 @@ class Task6 extends StatefulWidget {
 }
 
 class _Task6State extends State<Task6> {
-  List<dynamic> datas = [];
-  List<dynamic> filteredDatas = []; // List to store filtered data
+  List<Todo> datas = [];
+  List<Todo> filteredDatas = []; // List to store filtered data
   bool filterCompleted = false; // Variable to track filter status
-  TextEditingController searchController = TextEditingController(); // Controller for search text field
+  TextEditingController searchController =
+      TextEditingController(); // Controller for search text field
 
   @override
   Widget build(BuildContext context) {
@@ -30,6 +59,7 @@ class _Task6State extends State<Task6> {
             onPressed: () {
               setState(() {
                 filterCompleted = !filterCompleted; // Toggle filter status
+                filterData();
               });
             },
             icon: Icon(Icons.filter_alt),
@@ -68,8 +98,8 @@ class _Task6State extends State<Task6> {
       body: ListView.builder(
         itemBuilder: (context, index) {
           final data = filteredDatas.isNotEmpty ? filteredDatas[index] : datas[index];
-          final title = data['title'];
-          final done = data['completed'];
+          final title = data.title;
+          final done = data.completed;
 
           // Check if the data matches the filter status
           if (filterCompleted && !done) {
@@ -98,20 +128,27 @@ class _Task6State extends State<Task6> {
     if (response.statusCode == 200) {
       final List<dynamic> json = jsonDecode(response.body);
       setState(() {
-        datas = json;
-        filteredDatas = datas; // Initialize filtered data with original data
+        datas = json.map((e) => Todo.fromJson(e)).toList();
+        filterData();
         print(datas);
       });
     } else {
-      print("error occured error code ${response.statusCode}");
+      print("Error occurred: ${response.statusCode}");
     }
+  }
+
+  void filterData() {
+    setState(() {
+      // Filter data based on filter status
+      filteredDatas = filterCompleted ? datas.where((data) => data.completed).toList() : datas;
+    });
   }
 
   void search() {
     String query = searchController.text.toLowerCase();
     setState(() {
       // Filter data based on search query
-      filteredDatas = datas.where((data) => data['title'].toLowerCase().contains(query)).toList();
+      filteredDatas = datas.where((data) => data.title.toLowerCase().contains(query)).toList();
     });
   }
 
